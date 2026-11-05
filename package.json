@@ -1,0 +1,22 @@
+{
+  "name": "visualtwin-studio",
+  "private": true,
+  "packageManager": "pnpm@10.33.0",
+  "scripts": {
+    "dev:editor": "pnpm --filter @visualtwin/player build && pnpm --filter @visualtwin/editor dev",
+    "dev:player": "pnpm --filter @visualtwin/player dev",
+    "generate:types": "json2ts -i packages/schema/src/scene.schema.json -o packages/schema/src/generated.ts",
+    "check:generated": "node scripts/check-generated.mjs",
+    "typecheck": "pnpm check:generated && vue-tsc --noEmit -p tsconfig.json",
+    "build": "pnpm --filter @visualtwin/player build && pnpm --filter @visualtwin/editor build"
+  },
+  "devDependencies": {
+    "@types/node": "22.15.30",
+    "@types/three": "0.180.0",
+    "@vitejs/plugin-vue": "5.2.4",
+    "json-schema-to-typescript": "15.0.4",
+    "typescript": "5.8.3",
+    "vite": "6.3.5",
+    "vue-tsc": "2.2.10"
+  }
+}

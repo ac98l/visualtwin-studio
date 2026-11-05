@@ -1,0 +1,294 @@
+{
+  "schemaVersion": 1,
+  "id": "scene-2d-example",
+  "name": "事件联动示例",
+  "canvas": {
+    "width": 1920,
+    "height": 1080,
+    "background": "#111b29"
+  },
+  "scene3d": {
+    "camera": {
+      "position": [
+        5,
+        4,
+        7
+      ],
+      "target": [
+        0,
+        0.5,
+        0
+      ],
+      "fov": 45,
+      "near": 0.1,
+      "far": 1000
+    },
+    "nodes": [
+      {
+        "id": "box-1",
+        "type": "primitive.box",
+        "name": "立方体",
+        "parentId": null,
+        "transform": {
+          "position": [
+            0,
+            0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "props": {
+          "color": "#4e9bff"
+        }
+      }
+    ]
+  },
+  "assets": [],
+  "components2d": [
+    {
+      "id": "example-bar",
+      "type": "chart.bar",
+      "name": "柱状图",
+      "visible": true,
+      "layout": {
+        "x": 40,
+        "y": 80,
+        "width": 500,
+        "height": 300,
+        "zIndex": 1
+      },
+      "style": {
+        "background": "#17283b",
+        "opacity": 0.95
+      },
+      "props": {
+        "title": "柱状图",
+        "color": "#4e9bff",
+        "legend": true,
+        "axis": true,
+        "source": [
+          [
+            "category",
+            "value"
+          ],
+          [
+            "一月",
+            42
+          ],
+          [
+            "二月",
+            65
+          ],
+          [
+            "三月",
+            50
+          ]
+        ]
+      }
+    },
+    {
+      "id": "example-line",
+      "type": "chart.line",
+      "name": "折线图",
+      "visible": true,
+      "layout": {
+        "x": 600,
+        "y": 80,
+        "width": 500,
+        "height": 300,
+        "zIndex": 1
+      },
+      "style": {
+        "background": "#17283b",
+        "opacity": 0.95
+      },
+      "props": {
+        "title": "折线图",
+        "color": "#4e9bff",
+        "legend": true,
+        "axis": true,
+        "source": [
+          [
+            "category",
+            "value"
+          ],
+          [
+            "一月",
+            42
+          ],
+          [
+            "二月",
+            65
+          ],
+          [
+            "三月",
+            50
+          ]
+        ]
+      }
+    },
+    {
+      "id": "example-pie",
+      "type": "chart.pie",
+      "name": "饼图",
+      "visible": true,
+      "layout": {
+        "x": 1160,
+        "y": 80,
+        "width": 500,
+        "height": 300,
+        "zIndex": 1
+      },
+      "style": {
+        "background": "#17283b",
+        "opacity": 0.95
+      },
+      "props": {
+        "title": "饼图",
+        "color": "#4e9bff",
+        "legend": true,
+        "axis": true,
+        "source": [
+          [
+            "category",
+            "value"
+          ],
+          [
+            "一月",
+            42
+          ],
+          [
+            "二月",
+            65
+          ],
+          [
+            "三月",
+            50
+          ]
+        ]
+      }
+    },
+    {
+      "id": "example-number",
+      "type": "widget.number",
+      "name": "数字指标卡",
+      "visible": true,
+      "layout": {
+        "x": 40,
+        "y": 720,
+        "width": 400,
+        "height": 160,
+        "zIndex": 2
+      },
+      "style": {
+        "background": "#17283b",
+        "opacity": 0.95
+      },
+      "props": {
+        "title": "累计产量",
+        "value": 1280,
+        "unit": "件",
+        "color": "#63b3ff",
+        "decimals": 0
+      }
+    },
+    {
+      "id": "example-text",
+      "type": "widget.text",
+      "name": "文本",
+      "visible": true,
+      "layout": {
+        "x": 600,
+        "y": 720,
+        "width": 600,
+        "height": 100,
+        "zIndex": 2
+      },
+      "style": {
+        "background": "#17283b",
+        "opacity": 0.95
+      },
+      "props": {
+        "text": "二维与三维示例",
+        "fontSize": 32,
+        "fontWeight": 700,
+        "color": "#ffffff",
+        "align": "center"
+      }
+    }
+  ],
+  "dataSources": [
+    {
+      "id": "demo-data",
+      "type": "static",
+      "value": {
+        "rows": [
+          [
+            "category",
+            "value"
+          ],
+          [
+            "一月",
+            72
+          ],
+          [
+            "二月",
+            35
+          ],
+          [
+            "三月",
+            90
+          ]
+        ]
+      }
+    }
+  ],
+  "bindings": [
+    {
+      "id": "demo-binding",
+      "sourceId": "demo-data",
+      "path": "/rows",
+      "targetId": "example-bar",
+      "property": "source"
+    }
+  ],
+  "events": [
+    {
+      "id": "demo-3d-click",
+      "sourceId": "box-1",
+      "event": "click",
+      "actions": [
+        {
+          "targetId": "example-bar",
+          "type": "chart.highlight",
+          "params": {
+            "dataIndex": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "demo-chart-click",
+      "sourceId": "example-bar",
+      "event": "click",
+      "actions": [
+        {
+          "targetId": "box-1",
+          "type": "node.setVisible",
+          "params": {
+            "visible": false
+          }
+        }
+      ]
+    }
+  ]
+}

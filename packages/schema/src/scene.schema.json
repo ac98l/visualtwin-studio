@@ -1,0 +1,1172 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SceneDocument",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "id",
+    "name",
+    "canvas",
+    "scene3d",
+    "assets",
+    "components2d",
+    "dataSources",
+    "bindings",
+    "events"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "canvas": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "width",
+        "height",
+        "background"
+      ],
+      "properties": {
+        "width": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "height": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "background": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        }
+      }
+    },
+    "scene3d": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "camera",
+        "nodes"
+      ],
+      "properties": {
+        "camera": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "position",
+            "target",
+            "fov",
+            "near",
+            "far"
+          ],
+          "properties": {
+            "position": {
+              "$ref": "#/definitions/vector3"
+            },
+            "target": {
+              "$ref": "#/definitions/vector3"
+            },
+            "fov": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 180
+            },
+            "near": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "far": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/definitions/box"
+              },
+              {
+                "$ref": "#/definitions/model"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "type",
+          "name",
+          "mimeType",
+          "byteLength",
+          "sha256"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]{1,128}$"
+          },
+          "type": {
+            "const": "glb"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "mimeType": {
+            "const": "model/gltf-binary"
+          },
+          "byteLength": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      }
+    },
+    "components2d": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "$ref": "#/definitions/component_bar"
+          },
+          {
+            "$ref": "#/definitions/component_line"
+          },
+          {
+            "$ref": "#/definitions/component_pie"
+          },
+          {
+            "$ref": "#/definitions/component_text"
+          },
+          {
+            "$ref": "#/definitions/component_number"
+          }
+        ]
+      }
+    },
+    "dataSources": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "$ref": "#/definitions/staticDataSource"
+          },
+          {
+            "$ref": "#/definitions/httpDataSource"
+          }
+        ]
+      }
+    },
+    "bindings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/binding"
+      }
+    },
+    "events": {
+      "type": "array",
+      "maxItems": 200,
+      "items": {
+        "$ref": "#/definitions/eventRule"
+      }
+    }
+  },
+  "definitions": {
+    "vector3": {
+      "type": "array",
+      "items": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "minItems": 3,
+      "maxItems": 3,
+      "additionalItems": false
+    },
+    "box": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "name",
+        "parentId",
+        "transform",
+        "props"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "enum": [
+            "primitive.box",
+            "primitive.sphere",
+            "primitive.plane",
+            "primitive.cylinder"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "parentId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "transform": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "position",
+            "rotation",
+            "scale"
+          ],
+          "properties": {
+            "position": {
+              "$ref": "#/definitions/vector3"
+            },
+            "rotation": {
+              "$ref": "#/definitions/vector3"
+            },
+            "scale": {
+              "$ref": "#/definitions/vector3"
+            }
+          }
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "color"
+          ],
+          "properties": {
+            "color": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            }
+          }
+        },
+        "visible": {
+          "type": "boolean"
+        }
+      },
+      "title": "PrimitiveNode"
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "name",
+        "parentId",
+        "transform",
+        "props"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "const": "model.gltf"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "parentId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "transform": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "position",
+            "rotation",
+            "scale"
+          ],
+          "properties": {
+            "position": {
+              "$ref": "#/definitions/vector3"
+            },
+            "rotation": {
+              "$ref": "#/definitions/vector3"
+            },
+            "scale": {
+              "$ref": "#/definitions/vector3"
+            }
+          }
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "assetId"
+          ],
+          "properties": {
+            "assetId": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "visible": {
+          "type": "boolean"
+        }
+      },
+      "title": "ModelNode"
+    },
+    "component_bar": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "name",
+        "visible",
+        "layout",
+        "style",
+        "props"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "const": "chart.bar"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "layout": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "x",
+            "y",
+            "width",
+            "height",
+            "zIndex"
+          ],
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "width": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "height": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "zIndex": {
+              "type": "integer"
+            }
+          }
+        },
+        "style": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "background",
+            "opacity"
+          ],
+          "properties": {
+            "background": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "opacity": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "title",
+            "color",
+            "legend",
+            "axis",
+            "source"
+          ],
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "color": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "legend": {
+              "type": "boolean"
+            },
+            "axis": {
+              "type": "boolean"
+            },
+            "source": {
+              "type": "array",
+              "minItems": 1,
+              "items": [
+                {
+                  "const": [
+                    "category",
+                    "value"
+                  ]
+                }
+              ],
+              "additionalItems": {
+                "type": "array",
+                "items": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "minItems": 2,
+                "maxItems": 2,
+                "additionalItems": false
+              }
+            }
+          }
+        }
+      },
+      "title": "ComponentBar"
+    },
+    "component_line": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "name",
+        "visible",
+        "layout",
+        "style",
+        "props"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "const": "chart.line"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "layout": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "x",
+            "y",
+            "width",
+            "height",
+            "zIndex"
+          ],
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "width": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "height": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "zIndex": {
+              "type": "integer"
+            }
+          }
+        },
+        "style": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "background",
+            "opacity"
+          ],
+          "properties": {
+            "background": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "opacity": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "title",
+            "color",
+            "legend",
+            "axis",
+            "source"
+          ],
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "color": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "legend": {
+              "type": "boolean"
+            },
+            "axis": {
+              "type": "boolean"
+            },
+            "source": {
+              "type": "array",
+              "minItems": 1,
+              "items": [
+                {
+                  "const": [
+                    "category",
+                    "value"
+                  ]
+                }
+              ],
+              "additionalItems": {
+                "type": "array",
+                "items": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "minItems": 2,
+                "maxItems": 2,
+                "additionalItems": false
+              }
+            }
+          }
+        }
+      },
+      "title": "ComponentLine"
+    },
+    "component_pie": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "name",
+        "visible",
+        "layout",
+        "style",
+        "props"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "const": "chart.pie"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "layout": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "x",
+            "y",
+            "width",
+            "height",
+            "zIndex"
+          ],
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "width": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "height": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "zIndex": {
+              "type": "integer"
+            }
+          }
+        },
+        "style": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "background",
+            "opacity"
+          ],
+          "properties": {
+            "background": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "opacity": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "title",
+            "color",
+            "legend",
+            "axis",
+            "source"
+          ],
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "color": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "legend": {
+              "type": "boolean"
+            },
+            "axis": {
+              "type": "boolean"
+            },
+            "source": {
+              "type": "array",
+              "minItems": 1,
+              "items": [
+                {
+                  "const": [
+                    "category",
+                    "value"
+                  ]
+                }
+              ],
+              "additionalItems": {
+                "type": "array",
+                "items": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "minItems": 2,
+                "maxItems": 2,
+                "additionalItems": false
+              }
+            }
+          }
+        }
+      },
+      "title": "ComponentPie"
+    },
+    "component_text": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "name",
+        "visible",
+        "layout",
+        "style",
+        "props"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "const": "widget.text"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "layout": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "x",
+            "y",
+            "width",
+            "height",
+            "zIndex"
+          ],
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "width": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "height": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "zIndex": {
+              "type": "integer"
+            }
+          }
+        },
+        "style": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "background",
+            "opacity"
+          ],
+          "properties": {
+            "background": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "opacity": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "text",
+            "fontSize",
+            "fontWeight",
+            "color",
+            "align"
+          ],
+          "properties": {
+            "text": {
+              "type": "string"
+            },
+            "fontSize": {
+              "type": "number",
+              "minimum": 8,
+              "maximum": 300
+            },
+            "fontWeight": {
+              "enum": [
+                400,
+                700
+              ]
+            },
+            "color": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "align": {
+              "enum": [
+                "left",
+                "center",
+                "right"
+              ]
+            }
+          }
+        }
+      },
+      "title": "ComponentText"
+    },
+    "component_number": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "name",
+        "visible",
+        "layout",
+        "style",
+        "props"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "const": "widget.number"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "layout": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "x",
+            "y",
+            "width",
+            "height",
+            "zIndex"
+          ],
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "width": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "height": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "zIndex": {
+              "type": "integer"
+            }
+          }
+        },
+        "style": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "background",
+            "opacity"
+          ],
+          "properties": {
+            "background": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "opacity": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "title",
+            "value",
+            "unit",
+            "color",
+            "decimals"
+          ],
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "value": {
+              "type": "number"
+            },
+            "unit": {
+              "type": "string"
+            },
+            "color": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "decimals": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 6
+            }
+          }
+        }
+      },
+      "title": "ComponentNumber"
+    },
+    "staticDataSource": {
+      "title": "StaticDataSource",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "value"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "const": "static"
+        },
+        "value": {}
+      }
+    },
+    "httpDataSource": {
+      "title": "HttpDataSource",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "url",
+        "method",
+        "intervalMs",
+        "timeoutMs"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "const": "http"
+        },
+        "url": {
+          "type": "string",
+          "minLength": 1
+        },
+        "method": {
+          "const": "GET"
+        },
+        "intervalMs": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "timeoutMs": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "binding": {
+      "title": "Binding",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "sourceId",
+        "path",
+        "targetId",
+        "property"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourceId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "path": {
+          "type": "string",
+          "pattern": "^(?:/(?:[^~/]|~[01])*)*$"
+        },
+        "targetId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "property": {
+          "enum": [
+            "source",
+            "title",
+            "color"
+          ]
+        }
+      }
+    },
+    "eventRule": {
+      "title": "EventRule",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "sourceId",
+        "event",
+        "actions"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourceId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "event": {
+          "const": "click"
+        },
+        "actions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 50,
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/definitions/highlightAction"
+              },
+              {
+                "$ref": "#/definitions/visibleAction"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "highlightAction": {
+      "title": "HighlightAction",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "targetId",
+        "type",
+        "params"
+      ],
+      "properties": {
+        "targetId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "const": "chart.highlight"
+        },
+        "params": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "dataIndex"
+          ],
+          "properties": {
+            "dataIndex": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    },
+    "visibleAction": {
+      "title": "VisibleAction",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "targetId",
+        "type",
+        "params"
+      ],
+      "properties": {
+        "targetId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "const": "node.setVisible"
+        },
+        "params": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "visible"
+          ],
+          "properties": {
+            "visible": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    }
+  }
+}

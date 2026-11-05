@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.DS_Store
+
+.pnpm-store/
+.env.local
+.env.*.local
+*.log
+*.tmp
+*.swp
+.cache/
+.vite/
+*.zip
+*.tar
+*.tar.gz
+*.tgz

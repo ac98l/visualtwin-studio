@@ -1,0 +1,17 @@
+{
+  "name": "@visualtwin/player",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 5174 --strictPort",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@noble/hashes": "1.8.0",
+    "@visualtwin/runtime-2d": "workspace:*",
+    "@visualtwin/runtime-3d": "workspace:*",
+    "@visualtwin/schema": "workspace:*",
+    "vue": "3.5.21"
+  }
+}

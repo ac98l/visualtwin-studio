@@ -1,0 +1,1 @@
+{"name":"@visualtwin/runtime-3d","version":"0.1.0","private":true,"type":"module","exports":"./src/index.ts","dependencies":{"@visualtwin/schema":"workspace:*","three":"0.180.0","vue":"3.5.21"}}

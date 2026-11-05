@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "scene-1",
+  "name": "我的三维场景",
+  "canvas": { "width": 1920, "height": 1080, "background": "#111b29" },
+  "scene3d": {
+    "camera": { "position": [5, 4, 7], "target": [0, 0.5, 0], "fov": 45, "near": 0.1, "far": 1000 },
+    "nodes": [{ "id": "box-1", "type": "primitive.box", "name": "立方体", "parentId": null, "transform": { "position": [0, 0.5, 0], "rotation": [0, 0, 0], "scale": [1, 1, 1] }, "props": { "color": "#4e9bff" } }]
+  },
+  "assets": [], "components2d": [], "dataSources": [], "bindings": [], "events": []
+}
