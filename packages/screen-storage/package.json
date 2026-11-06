@@ -1,0 +1,1 @@
+{"name":"@visualtwin/screen-storage","version":"0.1.0","private":true,"type":"module","exports":"./src/index.ts","dependencies":{"@visualtwin/schema":"workspace:*","@visualtwin/project-archive":"workspace:*"}}

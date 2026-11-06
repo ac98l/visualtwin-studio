@@ -11,9 +11,11 @@
     "@visualtwin/runtime-3d": "workspace:*",
     "@visualtwin/schema": "workspace:*",
     "element-plus": "2.10.7",
-    "fflate": "0.8.2",
+    "fflate": "0.8.3",
     "pinia": "3.0.3",
     "vue": "3.5.21",
-    "@visualtwin/runtime-2d": "workspace:*"
+    "@visualtwin/runtime-2d": "workspace:*",
+    "@visualtwin/editor-ui": "workspace:*",
+    "@visualtwin/project-archive": "workspace:*"
   }
 }

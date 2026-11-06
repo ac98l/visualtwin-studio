@@ -1,3 +1,6 @@
+import projectLicense from '../../../LICENSE?raw'
+import playerNotice from '../../../licenses/PLAYER-NOTICE.txt?raw'
+import thirdPartyNotices from '../../../licenses/PLAYER-THIRD-PARTY-NOTICES.txt?raw'
 import { strToU8, unzipSync, zipSync } from 'fflate'
 import type { SceneDocument } from '@visualtwin/schema'
 import { exportProject, limits } from './project-archive'
@@ -29,6 +32,9 @@ export function packStaticWeb(project: Uint8Array, templates: Record<string, str
     if (!name || name.startsWith('/') || name.split('/').includes('..') || files[name] || !/\.(html|js|css)$/.test(name)) throw new Error(`Player 构建路径或格式无效：${name}`)
     files[name] = strToU8(content)
   }
+  files['LICENSE'] = new TextEncoder().encode(projectLicense)
+  files['NOTICE'] = new TextEncoder().encode(playerNotice)
+  files['THIRD_PARTY_NOTICES.txt'] = new TextEncoder().encode(thirdPartyNotices)
   if (Object.keys(files).length > limits.entries || Object.values(files).reduce((sum, file) => sum + file.length, 0) > limits.unpackedBytes) throw new Error('静态项目条目数或解压总大小超限')
   const result = zipSync(files, { level: 0 })
   if (result.length > limits.zipBytes) throw new Error('静态项目 ZIP 大小超限')

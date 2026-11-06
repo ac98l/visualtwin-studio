@@ -32,6 +32,12 @@ importers:
 
   apps/editor:
     dependencies:
+      '@visualtwin/editor-ui':
+        specifier: workspace:*
+        version: link:../../packages/editor-ui
+      '@visualtwin/project-archive':
+        specifier: workspace:*
+        version: link:../../packages/project-archive
       '@visualtwin/runtime-2d':
         specifier: workspace:*
         version: link:../../packages/runtime-2d
@@ -45,8 +51,8 @@ importers:
         specifier: 2.10.7
         version: 2.10.7(vue@3.5.21(typescript@5.8.3))
       fflate:
-        specifier: 0.8.2
-        version: 0.8.2
+        specifier: 0.8.3
+        version: 0.8.3
       pinia:
         specifier: 3.0.3
         version: 3.0.3(typescript@5.8.3)(vue@3.5.21(typescript@5.8.3))
@@ -68,6 +74,30 @@ importers:
       '@visualtwin/schema':
         specifier: workspace:*
         version: link:../../packages/schema
+      '@visualtwin/screen-storage':
+        specifier: workspace:*
+        version: link:../../packages/screen-storage
+      vue:
+        specifier: 3.5.21
+        version: 3.5.21(typescript@5.8.3)
+
+  apps/screen-editor:
+    dependencies:
+      '@visualtwin/editor-ui':
+        specifier: workspace:*
+        version: link:../../packages/editor-ui
+      '@visualtwin/project-archive':
+        specifier: workspace:*
+        version: link:../../packages/project-archive
+      '@visualtwin/runtime-2d':
+        specifier: workspace:*
+        version: link:../../packages/runtime-2d
+      '@visualtwin/schema':
+        specifier: workspace:*
+        version: link:../../packages/schema
+      '@visualtwin/screen-storage':
+        specifier: workspace:*
+        version: link:../../packages/screen-storage
       vue:
         specifier: 3.5.21
         version: 3.5.21(typescript@5.8.3)
@@ -78,11 +108,35 @@ importers:
         specifier: workspace:*
         version: link:../schema
 
+  packages/editor-ui:
+    dependencies:
+      '@visualtwin/runtime-2d':
+        specifier: workspace:*
+        version: link:../runtime-2d
+      vue:
+        specifier: 3.5.21
+        version: 3.5.21(typescript@5.8.3)
+
+  packages/project-archive:
+    dependencies:
+      '@visualtwin/runtime-3d':
+        specifier: workspace:*
+        version: link:../runtime-3d
+      '@visualtwin/schema':
+        specifier: workspace:*
+        version: link:../schema
+      fflate:
+        specifier: 0.8.3
+        version: 0.8.3
+
   packages/runtime-2d:
     dependencies:
       '@visualtwin/core':
         specifier: workspace:*
         version: link:../core
+      '@visualtwin/runtime-3d':
+        specifier: workspace:*
+        version: link:../runtime-3d
       '@visualtwin/schema':
         specifier: workspace:*
         version: link:../schema
@@ -110,6 +164,15 @@ importers:
       ajv:
         specifier: 8.17.1
         version: 8.17.1
+
+  packages/screen-storage:
+    dependencies:
+      '@visualtwin/project-archive':
+        specifier: workspace:*
+        version: link:../project-archive
+      '@visualtwin/schema':
+        specifier: workspace:*
+        version: link:../schema
 
 packages:
 
@@ -673,9 +736,6 @@ packages:
     peerDependenciesMeta:
       picomatch:
         optional: true
-
-  fflate@0.8.2:
-    resolution: {integrity: sha512-cPJU47OaAoCbg0pBvzsgpTPhmhqI5eJjh/JIu8tPj5q+T7iLvW/JAYUqmE7KOB4R1ZyEhzBaIQpQpardBF5z8A==}
 
   fflate@0.8.3:
     resolution: {integrity: sha512-tbZNuJrLwGUp3zshBtdy4W+ORxZuIh8a5ilyIEQDC5rY1f3U20JMry0Ll3WBzU58EZKsEuJFXhb5gwv8CsPvgA==}
@@ -1402,8 +1462,6 @@ snapshots:
   fdir@6.5.0(picomatch@4.0.7):
     optionalDependencies:
       picomatch: 4.0.7
-
-  fflate@0.8.2: {}
 
   fflate@0.8.3: {}
 

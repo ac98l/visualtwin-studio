@@ -1,4 +1,4 @@
-import type { SceneDocument } from '@visualtwin/schema'
+import type { SceneDocument, ScreenDocument } from '@visualtwin/schema'
 
 type Source = SceneDocument['dataSources'][number]
 type Binding = SceneDocument['bindings'][number]
@@ -74,12 +74,12 @@ export class DataRuntime {
   dispose() { this.stopped = true; this.controllers.forEach(controller => controller.abort()); this.controllers.clear(); this.active.clear(); this.timers.forEach(clearTimeout); this.timers.clear(); this.polls.clear() }
 }
 
-export function applyBindings(document: SceneDocument, values: Map<string, unknown>): SceneDocument {
-  const result = JSON.parse(JSON.stringify(document)) as SceneDocument
+export function applyBindings<T extends SceneDocument | ScreenDocument>(document: T, values: Map<string, unknown>): T {
+  const result = JSON.parse(JSON.stringify(document)) as T
   for (const binding of document.bindings) {
     const value = values.has(binding.id) ? values.get(binding.id) : binding.property === 'source' ? [['category', 'value']] : undefined
     if (value === undefined) continue
-    const target = result.components2d.find(item => item.id === binding.targetId) ?? result.scene3d.nodes.find(item => item.id === binding.targetId)
+    const target = result.components2d.find(item => item.id === binding.targetId) ?? ('scene3d' in result ? result.scene3d.nodes.find(item => item.id === binding.targetId) : undefined)
     if (target?.type === 'chart.bar' && binding.property === 'title' && typeof value === 'string') target.props.title = value
     else if (target?.type === 'chart.bar' && binding.property === 'source' && validValue('source', value)) target.props.source = value as typeof target.props.source
     else if (target?.type === 'primitive.box' && binding.property === 'color' && typeof value === 'string') target.props.color = value

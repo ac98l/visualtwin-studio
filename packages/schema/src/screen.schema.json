@@ -1,0 +1,727 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ScreenDocument",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "documentType",
+    "schemaVersion",
+    "id",
+    "name",
+    "canvas",
+    "background",
+    "components2d",
+    "dataSources",
+    "bindings",
+    "events"
+  ],
+  "properties": {
+    "documentType": {
+      "const": "screen"
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "canvas": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "width",
+        "height",
+        "background",
+        "fit"
+      ],
+      "properties": {
+        "width": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16384
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16384
+        },
+        "background": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "fit": {
+          "const": "contain"
+        }
+      }
+    },
+    "background": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "const": "none"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "scene"
+          ],
+          "properties": {
+            "type": {
+              "const": "scene"
+            },
+            "scene": {
+              "$ref": "packages/schema/src/scene.schema.json"
+            }
+          }
+        }
+      ]
+    },
+    "components2d": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "$ref": "packages/schema/src/scene.schema.json#/definitions/component_bar"
+          },
+          {
+            "$ref": "packages/schema/src/scene.schema.json#/definitions/component_line"
+          },
+          {
+            "$ref": "packages/schema/src/scene.schema.json#/definitions/component_pie"
+          },
+          {
+            "$ref": "packages/schema/src/scene.schema.json#/definitions/component_text"
+          },
+          {
+            "$ref": "packages/schema/src/scene.schema.json#/definitions/component_number"
+          },
+          {
+            "$ref": "#/definitions/screen_border"
+          },
+          {
+            "$ref": "#/definitions/screen_decoration"
+          },
+          {
+            "$ref": "#/definitions/screen_table"
+          }
+        ]
+      }
+    },
+    "dataSources": {
+      "$ref": "packages/schema/src/scene.schema.json#/properties/dataSources"
+    },
+    "bindings": {
+      "$ref": "packages/schema/src/scene.schema.json#/properties/bindings"
+    },
+    "events": {
+      "type": "array",
+      "maxItems": 200,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "source",
+          "event",
+          "actions"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "scope",
+              "id"
+            ],
+            "properties": {
+              "scope": {
+                "enum": [
+                  "background",
+                  "foreground"
+                ]
+              },
+              "id": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "event": {
+            "const": "click"
+          },
+          "actions": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 50,
+            "items": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "target",
+                    "type",
+                    "params"
+                  ],
+                  "properties": {
+                    "target": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "scope",
+                        "id"
+                      ],
+                      "properties": {
+                        "scope": {
+                          "enum": [
+                            "background",
+                            "foreground"
+                          ]
+                        },
+                        "id": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    },
+                    "type": {
+                      "const": "chart.highlight"
+                    },
+                    "params": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "dataIndex"
+                      ],
+                      "properties": {
+                        "dataIndex": {
+                          "type": "integer",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "target",
+                    "type",
+                    "params"
+                  ],
+                  "properties": {
+                    "target": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "scope",
+                        "id"
+                      ],
+                      "properties": {
+                        "scope": {
+                          "enum": [
+                            "background",
+                            "foreground"
+                          ]
+                        },
+                        "id": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    },
+                    "type": {
+                      "const": "node.setVisible"
+                    },
+                    "params": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "visible"
+                      ],
+                      "properties": {
+                        "visible": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "rotations": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "number",
+        "minimum": -180,
+        "exclusiveMaximum": 180
+      }
+    },
+    "groups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "memberIds",
+          "visible"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "memberIds": {
+            "type": "array",
+            "minItems": 2,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "visible": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "screen_border": {
+      "title": "ScreenBorder",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "name",
+        "visible",
+        "layout",
+        "style",
+        "props"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "layout": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "x",
+            "y",
+            "width",
+            "height",
+            "zIndex"
+          ],
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "width": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "height": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "zIndex": {
+              "type": "integer"
+            }
+          }
+        },
+        "style": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "background",
+            "opacity"
+          ],
+          "properties": {
+            "background": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "opacity": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        },
+        "type": {
+          "const": "screen.border"
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "variant",
+            "color",
+            "thickness",
+            "title",
+            "backgroundOpacity"
+          ],
+          "properties": {
+            "variant": {
+              "enum": [
+                "line",
+                "corners",
+                "glow"
+              ]
+            },
+            "color": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "thickness": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 12
+            },
+            "title": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "backgroundOpacity": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        }
+      }
+    },
+    "screen_decoration": {
+      "title": "ScreenDecoration",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "name",
+        "visible",
+        "layout",
+        "style",
+        "props"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "layout": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "x",
+            "y",
+            "width",
+            "height",
+            "zIndex"
+          ],
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "width": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "height": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "zIndex": {
+              "type": "integer"
+            }
+          }
+        },
+        "style": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "background",
+            "opacity"
+          ],
+          "properties": {
+            "background": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "opacity": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        },
+        "type": {
+          "const": "screen.decoration"
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "variant",
+            "color",
+            "thickness",
+            "vertical"
+          ],
+          "properties": {
+            "variant": {
+              "enum": [
+                "line",
+                "tech",
+                "title",
+                "dots"
+              ]
+            },
+            "color": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "thickness": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 12
+            },
+            "vertical": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "screen_table": {
+      "title": "ScreenTable",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "name",
+        "visible",
+        "layout",
+        "style",
+        "props"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "layout": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "x",
+            "y",
+            "width",
+            "height",
+            "zIndex"
+          ],
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "width": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "height": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "zIndex": {
+              "type": "integer"
+            }
+          }
+        },
+        "style": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "background",
+            "opacity"
+          ],
+          "properties": {
+            "background": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "opacity": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        },
+        "type": {
+          "const": "screen.table"
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "columns",
+            "rows",
+            "headerHeight",
+            "rowHeight",
+            "fontSize",
+            "color",
+            "headerBackground",
+            "rowBackground",
+            "alternateBackground",
+            "speed",
+            "paused"
+          ],
+          "properties": {
+            "columns": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "title",
+                  "width"
+                ],
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "width": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 1000
+                  }
+                }
+              }
+            },
+            "rows": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": [
+                    "string",
+                    "number",
+                    "boolean",
+                    "null"
+                  ]
+                }
+              }
+            },
+            "headerHeight": {
+              "type": "number",
+              "minimum": 16,
+              "maximum": 200
+            },
+            "rowHeight": {
+              "type": "number",
+              "minimum": 16,
+              "maximum": 200
+            },
+            "fontSize": {
+              "type": "number",
+              "minimum": 8,
+              "maximum": 80
+            },
+            "color": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "headerBackground": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "rowBackground": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "alternateBackground": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "speed": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 200
+            },
+            "paused": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    }
+  }
+}

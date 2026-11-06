@@ -154,7 +154,7 @@ onMounted(() => {
     const id = picked ? picked.userData.sceneId as string : null
     if (props.editable) emit('select', id)
     const node = id ? props.document.scene3d.nodes.find(item => item.id === id) : undefined
-    if (node && eventRegistry[node.type]?.events.includes('click')) emit('clickNode', node.id)
+    if (node && (node.type !== 'model.gltf' || !loading.has(node.id)) && eventRegistry[node.type]?.events.includes('click')) emit('clickNode', node.id)
   }
   const onDragOver = (event: DragEvent) => { if (event.dataTransfer?.types.some(type => ['application/x-visualtwin-primitive', 'application/x-visualtwin-asset'].includes(type))) event.preventDefault() }
   const onDrop = (event: DragEvent) => {

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "scene-2d-example",
-  "name": "事件联动示例",
+  "name": "P6 事件联动示例",
   "canvas": {
     "width": 1920,
     "height": 1080,
