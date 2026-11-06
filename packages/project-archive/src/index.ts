@@ -30,13 +30,18 @@ function inspectZip(bytes: Uint8Array) {
   let end = bytes.length - 22
   while (end >= Math.max(0, bytes.length - 65557) && v.getUint32(end, true) !== 0x06054b50) end--
   if (end < 0 || v.getUint32(end, true) !== 0x06054b50 || end + 22 + v.getUint16(end + 20, true) !== bytes.length) throw new Error('ZIP 目录损坏')
+  // fflate 会在 EOCD 前 20 字节识别 ZIP64 定位记录并改用另一目录；项目包不支持 ZIP64。
+  if (end >= 20 && v.getUint32(end - 20, true) === 0x07064b50) throw new Error('不支持 ZIP64 定位记录')
   const count = v.getUint16(end + 10, true), size = v.getUint32(end + 12, true), start = v.getUint32(end + 16, true)
   if (v.getUint16(end + 4, true) || v.getUint16(end + 6, true) || count !== v.getUint16(end + 8, true) || !count || count > limits.entries || start + size !== end) throw new Error('ZIP 条目数量或目录无效，不支持分卷和 ZIP64')
   const files = new Map<string, { size: number, crc: number }>(); const decoder = new TextDecoder('utf-8', { fatal: true })
   let offset = start, total = 0
+  const ranges: { start: number, end: number }[] = []
   for (let i = 0; i < count; i++) {
     if (offset + 46 > end || v.getUint32(offset, true) !== 0x02014b50) throw new Error('ZIP 条目损坏')
     const flags = v.getUint16(offset + 8, true), method = v.getUint16(offset + 10, true), compressed = v.getUint32(offset + 20, true), original = v.getUint32(offset + 24, true)
+    // 工程包导出仅使用 STORE；不接受无法事前验证真实展开长度的 DEFLATE。
+    if (method !== 0) throw new Error('项目 ZIP 仅支持 STORE（不压缩）格式')
     const nameLen = v.getUint16(offset + 28, true), extra = v.getUint16(offset + 30, true), comment = v.getUint16(offset + 32, true), local = v.getUint32(offset + 42, true)
     if (offset + 46 + nameLen + extra + comment > end || local + 30 > start || v.getUint32(local, true) !== 0x04034b50) throw new Error('ZIP 头部损坏')
     const name = decoder.decode(bytes.subarray(offset + 46, offset + 46 + nameLen))
@@ -44,7 +49,10 @@ function inspectZip(bytes: Uint8Array) {
     const localNameLen = v.getUint16(local + 26, true), localExtra = v.getUint16(local + 28, true)
     const localName = decoder.decode(bytes.subarray(local + 30, local + 30 + localNameLen))
     const dataStart = local + 30 + localNameLen + localExtra
-    if (localName !== name || (flags & 9) || flags !== v.getUint16(local + 6, true) || method !== v.getUint16(local + 8, true) || ![0, 8].includes(method) || dataStart + compressed > start || compressed !== v.getUint32(local + 18, true) || original !== v.getUint32(local + 22, true)) throw new Error(`ZIP 条目不受支持或损坏：${name}`)
+    if (localName !== name || (flags & 9) || flags !== v.getUint16(local + 6, true) || method !== v.getUint16(local + 8, true) || dataStart + compressed > start || compressed !== v.getUint32(local + 18, true) || original !== v.getUint32(local + 22, true) || v.getUint32(offset + 16, true) !== v.getUint32(local + 14, true) || compressed !== original) throw new Error(`ZIP 条目不受支持或损坏：${name}`)
+    const dataEnd = dataStart + compressed
+    if (ranges.some(range => local < range.end && dataEnd > range.start)) throw new Error(`ZIP 条目区间重叠：${name}`)
+    ranges.push({ start: local, end: dataEnd })
     if (original > limits.unpackedBytes || (compressed === 0 ? original > 0 : original / compressed > limits.ratio)) throw new Error(`ZIP 条目解压大小或压缩比超限：${name}`)
     total += original
     if (total > limits.unpackedBytes) throw new Error('ZIP 解压总大小超限')
@@ -65,6 +73,7 @@ export async function unpackProject(blob: Blob, progress: (text: string) => void
   progress('正在解压并检查项目')
   let files: Record<string, Uint8Array>
   try { files = unzipSync(bytes) } catch { throw new Error('ZIP 解压失败或文件损坏') }
+  if (Object.keys(files).length !== entries.size || Object.keys(files).some(name => !entries.has(name))) throw new Error('ZIP 解压条目与目录不一致')
   for (const [name, meta] of entries) if (!files[name] || files[name].length !== meta.size || crc32(files[name]) !== meta.crc) throw new Error(`ZIP 内容损坏：${name}`)
   return { files, entries }
 }
