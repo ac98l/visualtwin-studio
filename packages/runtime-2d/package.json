@@ -12,6 +12,7 @@
     "@visualtwin/schema": "workspace:*",
     "echarts": "5.6.0",
     "vue": "3.5.21",
-    "@visualtwin/core": "workspace:*"
+    "@visualtwin/core": "workspace:*",
+    "@visualtwin/runtime-3d": "workspace:*"
   }
 }

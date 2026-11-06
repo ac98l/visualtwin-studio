@@ -1,60 +1,10 @@
-import { zipSync, unzipSync, strToU8, strFromU8 } from 'fflate'
+import { zipSync, strToU8 } from 'fflate'
 import { parseScene, type SceneDocument } from '@visualtwin/schema'
-import { loadModel, disposeModel } from '@visualtwin/runtime-3d'
-import { getAsset, sha256, type AssetRecord } from './storage'
-
-const envLimit = (name: string, fallback: number) => { const value = Number(import.meta.env[name]); return Number.isFinite(value) && value > 0 ? value : fallback }
-export const limits = {
-  modelBytes: envLimit('VITE_MAX_GLB_BYTES', 100 * 1024 * 1024),
-  zipBytes: envLimit('VITE_MAX_ZIP_BYTES', 256 * 1024 * 1024),
-  unpackedBytes: envLimit('VITE_MAX_UNPACKED_BYTES', 512 * 1024 * 1024),
-  entries: envLimit('VITE_MAX_ZIP_ENTRIES', 256), ratio: envLimit('VITE_MAX_ZIP_RATIO', 100)
-}
+import { getAsset, sha256 } from './storage'
+import { limits, validateGlb } from '@visualtwin/project-archive'
+export { importProject, limits, validateGlb } from '@visualtwin/project-archive'
 type Manifest = { formatVersion: 1, scene: 'scene.json', assets: { assetId: string, path: string, byteLength: number, sha256: string }[] }
 
-export async function validateGlb(blob: Blob, name: string) {
-  if (!name.toLowerCase().endsWith('.glb')) throw new Error('请选择 .glb 文件')
-  if (!blob.size || blob.size > limits.modelBytes) throw new Error(`GLB 大小须在 1 字节至 ${Math.round(limits.modelBytes / 1048576)} MB 之间`)
-  const object = await loadModel(blob)
-  disposeModel(object)
-}
-
-// 检查中央目录及本地头，限制解压前声明大小；解压后核对长度与 CRC。
-function inspectZip(bytes: Uint8Array) {
-  if (bytes.length < 22 || bytes.length > limits.zipBytes) throw new Error('ZIP 大小超限或文件损坏')
-  const v = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
-  let end = bytes.length - 22
-  while (end >= Math.max(0, bytes.length - 65557) && v.getUint32(end, true) !== 0x06054b50) end--
-  if (end < 0 || v.getUint32(end, true) !== 0x06054b50 || end + 22 + v.getUint16(end + 20, true) !== bytes.length) throw new Error('ZIP 目录损坏')
-  const count = v.getUint16(end + 10, true), size = v.getUint32(end + 12, true), start = v.getUint32(end + 16, true)
-  if (v.getUint16(end + 4, true) || v.getUint16(end + 6, true) || count !== v.getUint16(end + 8, true) || !count || count > limits.entries || start + size !== end) throw new Error('ZIP 条目数量或目录无效，不支持分卷和 ZIP64')
-  const files = new Map<string, { size: number, crc: number }>(); const decoder = new TextDecoder('utf-8', { fatal: true })
-  let offset = start, total = 0
-  for (let i = 0; i < count; i++) {
-    if (offset + 46 > end || v.getUint32(offset, true) !== 0x02014b50) throw new Error('ZIP 条目损坏')
-    const flags = v.getUint16(offset + 8, true), method = v.getUint16(offset + 10, true), compressed = v.getUint32(offset + 20, true), original = v.getUint32(offset + 24, true)
-    const nameLen = v.getUint16(offset + 28, true), extra = v.getUint16(offset + 30, true), comment = v.getUint16(offset + 32, true), local = v.getUint32(offset + 42, true)
-    if (offset + 46 + nameLen + extra + comment > end || local + 30 > start || v.getUint32(local, true) !== 0x04034b50) throw new Error('ZIP 头部损坏')
-    const name = decoder.decode(bytes.subarray(offset + 46, offset + 46 + nameLen))
-    if (!/^(scene\.json|manifest\.json|assets\/[A-Za-z0-9_-]{1,128}\.glb)$/.test(name) || files.has(name)) throw new Error(`ZIP 路径不安全或重复：${name}`)
-    const localNameLen = v.getUint16(local + 26, true), localExtra = v.getUint16(local + 28, true)
-    const localName = decoder.decode(bytes.subarray(local + 30, local + 30 + localNameLen))
-    const dataStart = local + 30 + localNameLen + localExtra
-    if (localName !== name || (flags & 9) || flags !== v.getUint16(local + 6, true) || method !== v.getUint16(local + 8, true) || ![0, 8].includes(method) || dataStart + compressed > start || compressed !== v.getUint32(local + 18, true) || original !== v.getUint32(local + 22, true)) throw new Error(`ZIP 条目不受支持或损坏：${name}`)
-    if (original > limits.unpackedBytes || (compressed === 0 ? original > 0 : original / compressed > limits.ratio)) throw new Error(`ZIP 条目解压大小或压缩比超限：${name}`)
-    total += original
-    if (total > limits.unpackedBytes) throw new Error('ZIP 解压总大小超限')
-    files.set(name, { size: original, crc: v.getUint32(offset + 16, true) })
-    offset += 46 + nameLen + extra + comment
-  }
-  if (offset !== end || !files.has('scene.json') || !files.has('manifest.json')) throw new Error('ZIP 缺少必要文件或目录无效')
-  return files
-}
-function crc32(data: Uint8Array) {
-  let crc = -1
-  for (const byte of data) { crc ^= byte; for (let k = 0; k < 8; k++) crc = (crc >>> 1) ^ (0xedb88320 & -(crc & 1)) }
-  return (crc ^ -1) >>> 0
-}
 export async function exportProject(sceneInput: SceneDocument, progress: (text: string) => void) {
   const scene = parseScene(JSON.parse(JSON.stringify(sceneInput)))
   const manifest: Manifest = { formatVersion: 1, scene: 'scene.json', assets: [] }
@@ -76,29 +26,4 @@ export async function exportProject(sceneInput: SceneDocument, progress: (text: 
   const zip = zipSync(files, { level: 0 })
   if (zip.length > limits.zipBytes) throw new Error('ZIP 大小超限')
   return new Blob([zip as BlobPart], { type: 'application/zip' })
-}
-export async function importProject(blob: Blob, progress: (text: string) => void) {
-  if (blob.size > limits.zipBytes) throw new Error('ZIP 大小超限')
-  const bytes = new Uint8Array(await blob.arrayBuffer()); const entries = inspectZip(bytes)
-  progress('正在解压并检查项目')
-  let files: Record<string, Uint8Array>
-  try { files = unzipSync(bytes) } catch { throw new Error('ZIP 解压失败或文件损坏') }
-  for (const [name, meta] of entries) if (!files[name] || files[name].length !== meta.size || crc32(files[name]) !== meta.crc) throw new Error(`ZIP 内容损坏：${name}`)
-  let manifest: Manifest; let scene: SceneDocument
-  try { manifest = JSON.parse(strFromU8(files['manifest.json'])); scene = parseScene(strFromU8(files['scene.json'])) } catch (error) { throw new Error(`项目文档无效：${error instanceof Error ? error.message : String(error)}`) }
-  if (!manifest || manifest.formatVersion !== 1 || manifest.scene !== 'scene.json' || !Array.isArray(manifest.assets) || manifest.assets.length !== scene.assets.length) throw new Error('manifest 版本或资产清单无效')
-  const ids = new Set<string>(), paths = new Set<string>(), records: AssetRecord[] = []
-  for (const [index, item] of manifest.assets.entries()) {
-    progress(`校验模型 ${index + 1}/${manifest.assets.length}`)
-    const asset = scene.assets.find(entry => entry.id === item.assetId)
-    if (!asset || ids.has(item.assetId) || paths.has(item.path) || item.path !== `assets/${item.assetId}.glb` || item.byteLength !== asset.byteLength || item.sha256 !== asset.sha256) throw new Error('manifest 资产引用无效或重复')
-    if (!files[item.path]) throw new Error(`项目缺少资产文件：${asset.name}`)
-    ids.add(item.assetId); paths.add(item.path)
-    const data = files[item.path]; const model = new Blob([data as BlobPart], { type: asset.mimeType })
-    if (model.size !== asset.byteLength || await sha256(model) !== asset.sha256) throw new Error(`资产内容校验失败：${asset.name}`)
-    await validateGlb(model, asset.name)
-    records.push({ ...asset, blob: model, createdAt: new Date().toISOString() })
-  }
-  if (entries.size !== paths.size + 2) throw new Error('ZIP 含未声明文件')
-  return { scene, records }
 }

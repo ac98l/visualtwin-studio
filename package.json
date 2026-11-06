@@ -5,10 +5,11 @@
   "scripts": {
     "dev:editor": "pnpm --filter @visualtwin/player build && pnpm --filter @visualtwin/editor dev",
     "dev:player": "pnpm --filter @visualtwin/player dev",
-    "generate:types": "json2ts -i packages/schema/src/scene.schema.json -o packages/schema/src/generated.ts",
+    "generate:types": "json2ts -i packages/schema/src/scene.schema.json -o packages/schema/src/generated.ts && json2ts -i packages/schema/src/screen.schema.json -o packages/schema/src/screen-generated.ts",
     "check:generated": "node scripts/check-generated.mjs",
     "typecheck": "pnpm check:generated && vue-tsc --noEmit -p tsconfig.json",
-    "build": "pnpm --filter @visualtwin/player build && pnpm --filter @visualtwin/editor build"
+    "build": "pnpm --filter @visualtwin/player build && pnpm --filter @visualtwin/editor build && pnpm --filter @visualtwin/screen-editor build",
+    "dev:screen": "pnpm --filter @visualtwin/player build && pnpm --filter @visualtwin/screen-editor dev"
   },
   "devDependencies": {
     "@types/node": "22.15.30",

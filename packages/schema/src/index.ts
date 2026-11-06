@@ -2,7 +2,7 @@ import Ajv from 'ajv'
 import schema from './scene.schema.json'
 import sample from '../examples/scene.json'
 import sample2d from '../examples/scene2d.json'
-import sampleEvents from '../examples/event-demo.json'
+import sampleP6 from '../examples/scene-p6.json'
 import type { SceneDocument } from './generated'
 import { eventRegistry } from './event-registry'
 
@@ -26,7 +26,7 @@ export function parseScene(input: unknown): SceneDocument {
   if (typeof input === 'string') {
     try { value = JSON.parse(input) } catch { throw new Error('场景 JSON 格式无效') }
   }
-  // 兼容旧版 model.glb 命名，统一迁移为 model.gltf。
+  // 兼容 P3 开发期间使用过的 model.glb 命名，统一迁移为 model.gltf。
   if (value && typeof value === 'object' && 'scene3d' in value) {
     const root = value as Record<string, unknown>
     const scene = root.scene3d
@@ -111,4 +111,7 @@ export function parseScene(input: unknown): SceneDocument {
 export const exampleScene = parseScene(sample)
 
 export const exampleScene2d = parseScene(sample2d)
-export const exampleEventScene = parseScene(sampleEvents)
+export const exampleSceneP6 = parseScene(sampleP6)
+
+export type { ScreenDocument } from './screen-generated'
+export { createScreen, parseScreen, parseDocument } from './screen'

@@ -3,6 +3,9 @@ dist/
 .DS_Store
 
 .pnpm-store/
+coverage/
+test-results/
+playwright-report/
 .env.local
 .env.*.local
 *.log

@@ -1,17 +1,32 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { exampleEventScene, parseScene, type SceneDocument } from '@visualtwin/schema'
+import { exampleSceneP6, parseDocument, type SceneDocument, type ScreenDocument } from '@visualtwin/schema'
 import PlayerView from './PlayerView.vue'
+import ScreenView from './ScreenView.vue'
+import { getBackgroundAsset, verifyBackground, checkScreenManifest } from '@visualtwin/screen-storage'
 import { fetchAsset, type ManifestAsset } from './assets'
 const scene = ref<SceneDocument>()
+const screen = ref<ScreenDocument>()
 const error = ref('')
 const manifest = ref<{ assets: ManifestAsset[] }>()
+const staticScreen = document.querySelector('meta[name="visualtwin-static-screen"]') !== null
 onMounted(async () => {
-  if (import.meta.env.DEV && !new URLSearchParams(location.search).has('scene')) { scene.value = exampleEventScene; return }
+  if (import.meta.env.DEV && !new URLSearchParams(location.search).has('scene')) { scene.value = exampleSceneP6; return }
   try {
-    const [docResponse, manifestResponse] = await Promise.all([fetch('./scene.json'), fetch('./manifest.json')])
-    if (!docResponse.ok || !manifestResponse.ok) throw new Error('缺少 scene.json 或 manifest.json')
-    const doc = parseScene(await docResponse.json())
+    const docResponse = await fetch('./scene.json')
+    if (!docResponse.ok) throw new Error('缺少 scene.json')
+    const parsed = parseDocument(await docResponse.json())
+    if (parsed.kind === 'screen') {
+      if (staticScreen) {
+        const response = await fetch('./manifest.json')
+        if (!response.ok) throw new Error('缺少大屏 manifest.json')
+        manifest.value = checkScreenManifest(await response.json(), parsed.document)
+      } else await verifyBackground(parsed.document)
+      screen.value = parsed.document; return
+    }
+    const doc = parsed.document
+    const manifestResponse = await fetch('./manifest.json')
+    if (!manifestResponse.ok) throw new Error('缺少 manifest.json')
     const data = await manifestResponse.json()
     if (data.formatVersion !== 1 || data.scene !== 'scene.json' || !Array.isArray(data.assets) || data.assets.length !== doc.assets.length) throw new Error('资产清单无效')
     for (const asset of doc.assets) {
@@ -27,5 +42,5 @@ async function resolveAsset(id: string) {
   return fetchAsset(asset)
 }
 </script>
-<template><PlayerView v-if="scene" :document="scene" :resolve-asset="resolveAsset" /><div v-else role="alert">{{ error || '正在加载场景…' }}</div></template>
+<template><ScreenView v-if="screen" :document="screen" :resolve-asset="staticScreen ? resolveAsset : getBackgroundAsset" /><PlayerView v-else-if="scene" :document="scene" :resolve-asset="resolveAsset" /><div v-else role="alert">{{ error || '正在加载场景…' }}</div></template>
 <style>html,body,#app{margin:0;width:100%;height:100%;overflow:hidden;font-family:Inter,"PingFang SC",sans-serif}</style>

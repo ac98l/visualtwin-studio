@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { SceneViewport } from '@visualtwin/runtime-3d'
 import { Overlay2D, registry, fitFrame, toDesign, useRuntimeData, useEventRuntime, type Component2D, type ComponentType } from '@visualtwin/runtime-2d'
-import Properties2D from './Properties2D.vue'
+import Properties2D from '@visualtwin/editor-ui/Properties2D.vue'
 import { parseScene, exampleScene, type SceneDocument } from '@visualtwin/schema'
 import { commitProject, deleteAssetAndSave, getAsset, getProject, saveProject, sha256, type AssetRecord } from './storage'
 import { exportProject, importProject, limits, validateGlb } from './project-archive'
@@ -325,6 +325,6 @@ async function importScene(event: Event) {
         <div class="property-note"><span>场景信息</span><div><span>对象数量</span><strong>{{ editor.scene.scene3d.nodes.length }}</strong></div></div>
       </aside>
     </div>
-    <footer class="statusbar"><div><span class="live-dot"></span> {{ sceneReady ? '场景已就绪' : '场景不可用' }} <span class="status-sep">|</span> {{ message || 'WebGL2' }}</div><div>VisualTwin Studio <span class="status-sep">|</span> 事件联动</div></footer>
+    <footer class="statusbar"><div><span class="live-dot"></span> {{ sceneReady ? '场景已就绪' : '场景不可用' }} <span class="status-sep">|</span> {{ message || 'WebGL2' }}</div><div>VisualTwin Studio <span class="status-sep">|</span> P6 事件联动</div></footer>
   </div>
 </template>
