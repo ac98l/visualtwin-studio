@@ -76,7 +76,7 @@ export function parseScene(input: unknown): SceneDocument {
     if (!sources.has(binding.sourceId)) throw new Error(`绑定 ${binding.id} 的数据源不存在：${binding.sourceId}`)
     const target = value.components2d.find(item => item.id === binding.targetId) ?? nodes.find(item => item.id === binding.targetId)
     if (!target) throw new Error(`绑定 ${binding.id} 的目标不存在：${binding.targetId}`)
-    if (!((target.type === 'chart.bar' && ['source', 'title'].includes(binding.property)) || (target.type === 'primitive.box' && binding.property === 'color'))) throw new Error(`绑定 ${binding.id} 的目标属性不允许绑定`)
+    if (!((['chart.bar', 'chart.line', 'chart.pie'].includes(target.type) && ['source', 'title'].includes(binding.property)) || (target.type === 'primitive.box' && binding.property === 'color') || (target.type === 'widget.text' && binding.property === 'text') || (target.type === 'widget.number' && binding.property === 'value'))) throw new Error(`绑定 ${binding.id} 的目标属性不允许绑定`)
     const key = `${binding.targetId}\u0000${binding.property}`
     if (targets.has(key)) throw new Error(`目标属性重复绑定：${binding.targetId}/${binding.property}`)
     targets.add(key)

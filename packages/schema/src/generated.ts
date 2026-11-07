@@ -223,7 +223,7 @@ export interface Binding {
   sourceId: string;
   path: string;
   targetId: string;
-  property: "source" | "title" | "color";
+  property: "source" | "title" | "color" | "text" | "value" | "rows";
 }
 export interface EventRule {
   id: string;

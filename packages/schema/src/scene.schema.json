@@ -1061,7 +1061,10 @@
           "enum": [
             "source",
             "title",
-            "color"
+            "color",
+            "text",
+            "value",
+            "rows"
           ]
         }
       }

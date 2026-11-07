@@ -6,7 +6,7 @@ VisualTwin Studio 是基于浏览器的三维场景与数据大屏编辑工具�
 
 - 3D Editor：基础几何体和 GLB 导入、拖放与变换、场景树、撤销重做、项目 ZIP 和静态网页导出。
 - Screen Editor：导入 3D 项目 ZIP 作为独立背景，叠加柱状图、折线图、饼图、文本、数字指标、边框、装饰及滚动表格；支持图层、多选、旋转、对齐和单层组合。
-- 静态 JSON / HTTP GET 数据源与 JSON Pointer；柱状图支持 `source`、`title` 白名单绑定。大屏支持 3D 节点点击高亮柱状图、柱状图点击切换背景节点显隐。
+- 静态 JSON / HTTP GET 数据源、JSON Pointer 和轮询；柱状图、折线图、饼图支持 `source`、`title` 白名单绑定，文本、数字指标和滚动表格分别支持内容、数值和行数据绑定。大屏支持 3D 节点点击高亮柱状图、柱状图点击切换背景节点显隐。
 - 统一 Player 渲染已校验的场景和大屏；支持导出大屏工程 ZIP 迁移，以及导出可由静态服务器托管的独立网页。
 
 技术栈：Vue 3、TypeScript、Vite、Three.js、ECharts、Element Plus、Pinia、JSON Schema / Ajv。项目使用 pnpm workspace，共享 `schema`、`core`、二维/三维 Runtime 和资产管理模块。
@@ -58,7 +58,11 @@ pnpm build       # 按 Player、3D Editor、Screen Editor 顺序构建
 {"rows":[["category","value"],["一月",42],["二月",65]]}
 ```
 
-点击“保存数据源配置”。选中柱状图，在右侧“数据绑定”选择该数据源和 `柱状图数据 source`，JSON Pointer 填 `/rows`，点击“保存绑定”。也可选择“新增 HTTP”，填写可访问的 GET JSON 地址、超时和轮询间隔，再通过相同方式绑定。当前大屏白名单只开放柱状图 `source` 和 `title`，其他组件不能任意绑定属性。动态响应仅影响运行显示，不写回静态配置。
+点击“保存数据源配置”。选中柱状图，在右侧“数据绑定”选择该数据源和 `柱状图数据 source`，JSON Pointer 填 `/rows`，点击“保存绑定”。也可选择“新增 HTTP”，填写可访问的 GET JSON 地址、超时和轮询间隔，再通过相同方式绑定；支持手动刷新。
+
+大屏绑定使用白名单：柱状图、折线图和饼图支持 `source`（上述表头及字符串类别、有限数字组成的二维数组）和字符串 `title`；饼图数值不能为负数。文本的 `text` 必须是字符串，数字指标的 `value` 必须是有限数字；滚动表格的 `rows` 是二维数组，最多 500 行，每行不超过配置列数，单元格支持字符串、有限数字、布尔值或 null。未知属性、错误路径或数据类型会提示错误，已有最近有效值时保留该值。隐藏的组件不再保留其独占请求；动态响应仅影响运行显示，不写回持久化配置。
+
+图表、文本和指标的新增白名单也适用于共享运行时读取的合法 3D SceneDocument；滚动表格是大屏专属。新版可以读取旧文档，但使用新增绑定目标保存的文档可能无法由旧版读取；迁移或降级前请保留原始备份。
 
 ### 4. 配置跨层事件
 
@@ -90,7 +94,7 @@ packages/project-archive / screen-storage  项目包与本地存储
 
 ## 已知限制
 
-目前以 Windows/macOS 桌面 Chrome、Edge 的 WebGL2 环境为目标；已验证 macOS Chrome + SwiftShader 软件渲染，macOS Edge、Windows Chrome/Edge、真实硬件 GPU、跨物理设备迁移及长期资源压力尚未完成验收。模型首版仅支持单文件 GLB，不支持 Draco、Meshopt、KTX2 解码及外部纹理引用，也不提供动画播放。大屏不支持后端账户、云同步、多人协同、任意脚本和模板市场。多标签页并发编辑没有冲突协调，历史无引用资产不会自动全部清理。HTTP 接口可能因跨域、混合内容、网络或鉴权限制不可访问。构建存在大 chunk 警告，未承诺特定 FPS 或模型规模。
+目前以 Windows/macOS 桌面 Chrome、Edge 的 WebGL2 环境为目标；已验证 macOS Chrome + SwiftShader 软件渲染，macOS Edge、Windows Chrome/Edge、真实硬件 GPU、跨物理设备迁移及长期资源压力尚未完成验收。不可取消请求的迟到响应在真实浏览器中的边界尚未完成验证。模型首版仅支持单文件 GLB，不支持 Draco、Meshopt、KTX2 解码及外部纹理引用，也不提供动画播放。大屏不支持后端账户、云同步、多人协同、任意脚本和模板市场。多标签页并发编辑没有冲突协调，历史无引用资产不会自动全部清理。HTTP 接口可能因跨域、混合内容、网络或鉴权限制不可访问。构建存在大 chunk 警告，未承诺特定 FPS 或模型规模。
 
 ## 从早期公开快照迁移
 
