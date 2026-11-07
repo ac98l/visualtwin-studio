@@ -23,7 +23,15 @@ export function parseScreen(input: unknown): ScreenDocument {
     if (item.type === 'screen.table' && (item.props.columns.length > 20 || item.props.rows.length > 500 || item.props.rows.some(row => row.length > item.props.columns.length))) throw new Error(`表格 ${item.id} 的列数或行数超限，或数据列数超过定义`)
   }
   // 复用 SceneDocument 的数据源、绑定白名单及语义校验，背景不参与大屏数据绑定。
-  parseScene({ ...sceneExample, id: value.id, name: value.name, canvas: { width: value.canvas.width, height: value.canvas.height, background: value.canvas.background }, scene3d: { ...sceneExample.scene3d, nodes: [] }, assets: [], components2d: value.components2d.filter((item): item is SceneDocument['components2d'][number] => !item.type.startsWith('screen.')), dataSources: value.dataSources, bindings: value.bindings, events: [] })
+  const tableBindings = value.bindings.filter(binding => value.components2d.some(item => item.id === binding.targetId && item.type === 'screen.table'))
+  parseScene({ ...sceneExample, id: value.id, name: value.name, canvas: { width: value.canvas.width, height: value.canvas.height, background: value.canvas.background }, scene3d: { ...sceneExample.scene3d, nodes: [] }, assets: [], components2d: value.components2d.filter((item): item is SceneDocument['components2d'][number] => !item.type.startsWith('screen.')), dataSources: value.dataSources, bindings: value.bindings.filter(binding => !tableBindings.includes(binding)), events: [] })
+  const tableTargets = new Set<string>()
+  for (const binding of tableBindings) {
+    if (binding.property !== 'rows') throw new Error(`绑定 ${binding.id} 的目标属性不允许绑定`)
+    if (!value.dataSources.some(source => source.id === binding.sourceId)) throw new Error(`绑定 ${binding.id} 的数据源不存在：${binding.sourceId}`)
+    if (tableTargets.has(binding.targetId)) throw new Error(`目标属性重复绑定：${binding.targetId}/rows`)
+    tableTargets.add(binding.targetId)
+  }
   for (const source of value.dataSources) { if (ids.has(source.id)) throw new Error(`重复 ID：${source.id}`); ids.add(source.id) }
   for (const binding of value.bindings) { if (ids.has(binding.id)) throw new Error(`重复 ID：${binding.id}`); ids.add(binding.id) }
   const lookup = (ref: { scope: 'background' | 'foreground', id: string }) => ref.scope === 'foreground' ? value.components2d.find(item => item.id === ref.id) : value.background.type === 'scene' ? value.background.scene.scene3d.nodes.find(item => item.id === ref.id) : undefined

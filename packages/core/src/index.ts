@@ -13,10 +13,12 @@ export function resolvePointer(value: unknown, path: string): unknown {
   }, value)
 }
 
-function validValue(property: Binding['property'], value: unknown) {
-  if (property === 'title') return typeof value === 'string'
+function validValue(property: Binding['property'], value: unknown, targetType?: string, columnCount?: number) {
+  if (property === 'title' || property === 'text') return typeof value === 'string'
+  if (property === 'value') return typeof value === 'number' && Number.isFinite(value)
   if (property === 'color') return typeof value === 'string' && /^#[\da-f]{6}$/i.test(value)
-  return Array.isArray(value) && value.length > 0 && Array.isArray(value[0]) && value[0].length === 2 && value[0][0] === 'category' && value[0][1] === 'value' && value.slice(1).every(row => Array.isArray(row) && row.length === 2 && typeof row[0] === 'string' && typeof row[1] === 'number' && Number.isFinite(row[1]))
+  if (property === 'rows') return targetType === 'screen.table' && columnCount !== undefined && Array.isArray(value) && value.length <= 500 && value.every(row => Array.isArray(row) && row.length <= columnCount && row.every(cell => cell === null || typeof cell === 'string' || typeof cell === 'boolean' || (typeof cell === 'number' && Number.isFinite(cell))))
+  return Array.isArray(value) && value.length > 0 && Array.isArray(value[0]) && value[0].length === 2 && value[0][0] === 'category' && value[0][1] === 'value' && value.slice(1).every(row => Array.isArray(row) && row.length === 2 && typeof row[0] === 'string' && typeof row[1] === 'number' && Number.isFinite(row[1]) && (targetType !== 'chart.pie' || row[1] >= 0))
 }
 
 export class DataRuntime {
@@ -28,7 +30,7 @@ export class DataRuntime {
   private active = new Map<string, AbortController>()
   readonly values = new Map<string, unknown>()
   readonly errors = new Map<string, string>()
-  constructor(private sources: Source[], private bindings: Binding[], private notify: () => void, private fetcher: typeof fetch = globalThis.fetch.bind(globalThis)) {}
+  constructor(private sources: Source[], private bindings: Binding[], private notify: () => void, private fetcher: typeof fetch = globalThis.fetch.bind(globalThis), private targetTypes: Record<string, string> = {}, private targetColumns: Record<string, number> = {}) {}
   start() { for (const source of this.sources) if (this.bindings.some(binding => binding.sourceId === source.id)) void this.refresh(source) }
   async refresh(source: Source): Promise<void> {
     if (this.stopped) return
@@ -55,7 +57,7 @@ export class DataRuntime {
       for (const binding of this.bindings.filter(item => item.sourceId === source.id)) {
         try {
           const mapped = resolvePointer(value, binding.path)
-          if (!validValue(binding.property, mapped)) throw new Error(`属性 ${binding.property} 的数据类型不匹配`)
+          if (!validValue(binding.property, mapped, this.targetTypes[binding.targetId], this.targetColumns[binding.targetId])) throw new Error(`属性 ${binding.property} 的数据类型不匹配${binding.property === 'source' && this.targetTypes[binding.targetId] === 'chart.pie' ? '（饼图数值须为非负数）' : binding.property === 'rows' ? '（最多 500 行，每行不得超过列数）' : ''}`)
           this.values.set(binding.id, JSON.parse(JSON.stringify(mapped))); this.errors.delete(binding.id)
         } catch (error) { this.errors.set(binding.id, `绑定 ${binding.id}：${error instanceof Error ? error.message : String(error)}`) }
       }
@@ -80,8 +82,11 @@ export function applyBindings<T extends SceneDocument | ScreenDocument>(document
     const value = values.has(binding.id) ? values.get(binding.id) : binding.property === 'source' ? [['category', 'value']] : undefined
     if (value === undefined) continue
     const target = result.components2d.find(item => item.id === binding.targetId) ?? ('scene3d' in result ? result.scene3d.nodes.find(item => item.id === binding.targetId) : undefined)
-    if (target?.type === 'chart.bar' && binding.property === 'title' && typeof value === 'string') target.props.title = value
-    else if (target?.type === 'chart.bar' && binding.property === 'source' && validValue('source', value)) target.props.source = value as typeof target.props.source
+    if ((target?.type === 'chart.bar' || target?.type === 'chart.line' || target?.type === 'chart.pie') && binding.property === 'title' && typeof value === 'string') target.props.title = value
+    else if ((target?.type === 'chart.bar' || target?.type === 'chart.line' || target?.type === 'chart.pie') && binding.property === 'source' && validValue('source', value, target.type)) target.props.source = value as typeof target.props.source
+    else if (target?.type === 'widget.text' && binding.property === 'text' && typeof value === 'string') target.props.text = value
+    else if (target?.type === 'widget.number' && binding.property === 'value' && validValue('value', value)) target.props.value = value as number
+    else if (target?.type === 'screen.table' && binding.property === 'rows' && validValue('rows', value, target.type, target.props.columns.length)) target.props.rows = value as typeof target.props.rows
     else if (target?.type === 'primitive.box' && binding.property === 'color' && typeof value === 'string') target.props.color = value
   }
   return result
