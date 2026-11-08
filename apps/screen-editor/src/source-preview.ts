@@ -2,6 +2,7 @@ import type { ScreenDocument } from '@visualtwin/schema'
 
 type Source = ScreenDocument['dataSources'][number]
 export const previewLimits = { bytes: 256 * 1024, depth: 4, entries: 30, string: 200, nodes: 500 } as const
+const sensitiveKey = /token|secret|password|api[_-]?key|authorization|credential|access[_-]?key/i
 
 // 只渲染有限结构；结果作为文本展示，不改变原值。
 export type PreviewChoice = { path: string, label: string }
@@ -17,6 +18,7 @@ export function formatPreview(value: unknown, choices?: PreviewChoice[]): string
     for (const [key, child] of entries.slice(0, previewLimits.entries)) {
       if (nodes >= previewLimits.nodes) { parts.push('…（预览节点已达上限）'); break }
       const label = key.length > previewLimits.string ? `${key.slice(0, previewLimits.string)}…` : key
+      if (!Array.isArray(item) && sensitiveKey.test(key)) { nodes++; parts.push(`${JSON.stringify(label)}: "[已隐藏]"`); continue }
       const childPath = `${path}/${key.replace(/~/g, '~0').replace(/\//g, '~1')}`
       parts.push(`${Array.isArray(item) ? '' : `${JSON.stringify(label)}: `}${render(child, depth + 1, childPath, label, selectable && key.length <= previewLimits.string)}`)
     }
