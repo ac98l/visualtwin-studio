@@ -32,10 +32,11 @@ export function useRuntimeData<T extends SceneDocument | ScreenDocument>(documen
   onBeforeUnmount(() => runtime.value?.dispose())
   const scene = computed(() => { void revision.value; return applyBindings(document.value, runtime.value?.values ?? new Map()) })
   const errors = computed(() => { void revision.value; return [...(runtime.value?.errors.values() ?? [])] })
+  const validBindingIds = computed(() => { void revision.value; return [...(runtime.value?.values.keys() ?? [])] })
   function refresh(id: string) {
     const source = document.value.dataSources.find(item => item.id === id)
     if (source && activeBindings.value.some(binding => binding.sourceId === id)) void runtime.value?.refresh(source)
   }
   function reset() { epoch.value++ }
-  return { scene, errors, refresh, reset }
+  return { scene, errors, validBindingIds, refresh, reset }
 }
