@@ -2,3 +2,5 @@
 .left,.right{overflow:auto}.library-item,.layer-item{display:block;width:100%;margin:6px 0;text-align:left;font-size:12px}.library-item small,.layer-item small{float:right;color:#91a5bb}.layer-item.active{border-color:#5896f9;background:#28425d}.left h3:not(:first-child){margin-top:26px}.property-form{font-size:12px;color:#9fb2c6}.property-form label{display:block}.property-form textarea,.property-form select{width:100%;margin-top:7px;padding:8px;background:#111d2b;border:1px solid #35485c;color:#dce8f5}.property-form input[type=checkbox]{display:inline;width:auto}.layout-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.object-actions,.layer-actions{display:flex;flex-wrap:wrap;gap:5px}.layer-actions{margin-top:15px}.layer-actions button{padding:6px}
 
 .data-sources{border:0;padding:0;margin:0;min-width:0}
+
+.layer-row{display:flex;align-items:center;gap:4px}.layer-row .layer-item{min-width:0}.layer-row>button:last-child{flex:none;padding:6px}.component-fields{border:0;padding:0;margin:0;min-width:0}
