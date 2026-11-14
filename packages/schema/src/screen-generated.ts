@@ -106,6 +106,7 @@ export interface ScreenDocument {
     ];
     enabled?: boolean;
   }[];
+  lockedComponentIds?: string[];
   rotations?: {
     [k: string]: number;
   };

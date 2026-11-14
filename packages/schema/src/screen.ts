@@ -47,6 +47,7 @@ export function parseScreen(input: unknown): ScreenDocument {
     }
   }
   const components = new Set(value.components2d.map(item => item.id))
+  for (const id of value.lockedComponentIds ?? []) if (!components.has(id)) throw new Error(`锁定组件不存在：${id}`)
   for (const id of Object.keys(value.rotations ?? {})) if (!components.has(id)) throw new Error(`旋转组件不存在：${id}`)
   const grouped = new Set<string>()
   for (const group of value.groups ?? []) {

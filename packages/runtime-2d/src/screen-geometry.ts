@@ -13,6 +13,37 @@ export function union(items: Component2D[], rotations: Record<string, number> = 
   const x = Math.min(...boxes.map(box => box.x)), y = Math.min(...boxes.map(box => box.y))
   return { x, y, width: Math.max(...boxes.map(box => box.x + box.width)) - x, height: Math.max(...boxes.map(box => box.y + box.height)) - y }
 }
+type Box = { x: number, y: number, width: number, height: number }
+type SnapReference = { id: string, box: Box, visible: boolean }
+type SnapLine = { axis: 'x' | 'y', position: number, source: 'canvas' | 'component', id?: string }
+
+// Equal distances retain the first candidate: canvas first, then references in input order;
+// within each, start, center and end anchors are considered in that order.
+export function snapMove(box: Box, references: SnapReference[], selectedIds: string[], canvas: { width: number, height: number }, scale: number, offset: { x: number, y: number }, thresholdPx = 6) {
+  const raw = { x: Number.isFinite(offset.x) ? offset.x : 0, y: Number.isFinite(offset.y) ? offset.y : 0 }
+  const result: { offset: typeof raw, lines: SnapLine[] } = { offset: raw, lines: [] }
+  const validBox = (value: Box) => [value.x, value.y, value.width, value.height, value.x + value.width, value.y + value.height].every(Number.isFinite) && value.width >= 0 && value.height >= 0
+  if (!validBox(box) || !Number.isFinite(canvas.width) || !Number.isFinite(canvas.height) || canvas.width <= 0 || canvas.height <= 0 || !Number.isFinite(scale) || scale <= 0 || !Number.isFinite(thresholdPx) || thresholdPx < 0) return result
+  const threshold = thresholdPx / scale
+  if (!Number.isFinite(threshold)) return result
+  const targets: { box: Box, source: 'canvas' | 'component', id?: string }[] = [{ box: { x: 0, y: 0, width: canvas.width, height: canvas.height }, source: 'canvas' }]
+  for (const reference of references) if (reference.visible && !selectedIds.includes(reference.id) && validBox(reference.box)) targets.push({ box: reference.box, source: 'component', id: reference.id })
+  for (const axis of ['x', 'y'] as const) {
+    const size = axis === 'x' ? 'width' : 'height'
+    const start = box[axis] + raw[axis]
+    const anchors = [start, start + box[size] / 2, start + box[size]]
+    let best: { distance: number, line: SnapLine } | undefined
+    for (const target of targets) {
+      const positions = [target.box[axis], target.box[axis] + target.box[size] / 2, target.box[axis] + target.box[size]]
+      for (const position of positions) for (const anchor of anchors) {
+        const distance = position - anchor
+        if (Number.isFinite(distance) && Math.abs(distance) <= threshold && (!best || Math.abs(distance) < Math.abs(best.distance)) && Number.isFinite(raw[axis] + distance)) best = { distance, line: { axis, position, source: target.source, ...(target.id === undefined ? {} : { id: target.id }) } }
+      }
+    }
+    if (best) { result.offset[axis] += best.distance; result.lines.push(best.line) }
+  }
+  return result
+}
 export function align(items: Component2D[], mode: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom' | 'horizontal' | 'vertical', rotations: Record<string, number> = {}) {
   if (items.length < (mode === 'horizontal' || mode === 'vertical' ? 3 : 2)) return items
   const outer = union(items, rotations)!
